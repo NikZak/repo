@@ -63,7 +63,7 @@ class Command(object):
         usage = self.helpUsage.strip().replace('%prog', me)
       except AttributeError:
         usage = 'repo %s' % self.NAME
-      self._optparse = optparse.OptionParser(usage = usage)
+      self._optparse = optparse.OptionParser(usage=usage)
       self._Options(self._optparse)
     return self._optparse
 
@@ -129,7 +129,7 @@ class Command(object):
   def GetProjects(self, args, missing_ok=False, submodules_ok=False):
     """A list of projects that match the arguments.
     """
-    all_projects_list = self.manifest.projects
+    all_projects_list = list(self.manifest.projects)
     result = []
 
     mp = self.manifest.manifestProject
@@ -143,12 +143,11 @@ class Command(object):
       derived_projects = {}
       for project in all_projects_list:
         if submodules_ok or project.sync_s:
-          derived_projects.update((p.name, p)
-                                  for p in project.GetDerivedSubprojects())
-      all_projects_list.extend(derived_projects.values())
+          derived_projects.update(
+              (p.name, p) for p in project.GetDerivedSubprojects())
+      all_projects_list.extend(list(derived_projects.values()))
       for project in all_projects_list:
-        if ((missing_ok or project.Exists) and
-            project.MatchesGroups(groups)):
+        if ((missing_ok or project.Exists) and project.MatchesGroups(groups)):
           result.append(project)
     else:
       self._ResetPathToProjectMap(all_projects_list)
@@ -187,6 +186,7 @@ class Command(object):
 
     def _getpath(x):
       return x.relpath
+
     result.sort(key=_getpath)
     return result
 
@@ -201,6 +201,7 @@ class Command(object):
     result.sort(key=lambda project: project.relpath)
     return result
 
+
 # pylint: disable=W0223
 # Pylint warns that the `InteractiveCommand` and `PagedCommand` classes do not
 # override method `Execute` which is abstract in `Command`.  Since that method
@@ -210,17 +211,22 @@ class InteractiveCommand(Command):
   """Command which requires user interaction on the tty and
      must not run within a pager, even if the user asks to.
   """
+
   def WantPager(self, opt):
     return False
+
 
 class PagedCommand(Command):
   """Command which defaults to output in a pager, as its
      display tends to be larger than one screen full.
   """
+
   def WantPager(self, opt):
     return True
 
+
 # pylint: enable=W0223
+
 
 class MirrorSafeCommand(object):
   """Command permits itself to run within a mirror,
